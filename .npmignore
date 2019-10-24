@@ -1,0 +1,5 @@
+src
+.prettierrc
+tsconfig.json
+webpack.config.js
+gulpfile.js
