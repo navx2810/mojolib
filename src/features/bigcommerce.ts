@@ -1,4 +1,5 @@
 import axios from "axios";
+import config from "./config";
 
 type Item = [number, number] | number;
 type LineItem = { productId: number; id: string };
@@ -17,14 +18,24 @@ const mapProductIdToId = ({ digitalItems = [], physicalItems = [] }: LineItems, 
 	return [...digitalItems, ...physicalItems].filter(it => it.productId === productId).map(it => it.id);
 };
 
+/**
+ * Console.logs the statement if the library is set to debug.
+ * @param statement The variables to pass through console.log
+ */
+const log = (...statement: any[]) => {
+	if(config.debug) {
+		console.log(...statement);
+	}
+}
+
 const transformItemIntoDTO = (items: Item[]) =>
 	items.map(item => {
 		let productId = 0;
 		let quantity = 1;
-		if (item as number) {
-			productId = item as number;
-		} else if (item as [number, number]) {
-			const [pId, qty = 1] = item as [number, number];
+		if (typeof item === 'number') {
+			productId = item;
+		} else {
+			const [pId, qty = 1] = item;
 			productId = pId;
 			quantity = qty;
 		}
@@ -65,7 +76,26 @@ export default new (class {
 	 * Update item(s) to the cart.
 	 * @param items The items to be updated.
 	 */
-	async updateItem(...items: Item[]) {}
+	async updateItem(...items: Item[]) {
+		const lineItems = transformItemIntoDTO(items)
+		let newItems = lineItems.filter(it => it.quantity > 0).map(item => ([item.productId, item.quantity])) as Item[]
+		try {
+			const cart = await this.getCart();
+			if(cart && cart.id) {
+				const cartItems = [...cart.lineItems.digitalItems, ...cart.lineItems.physicalItems].map(it => it.productId)
+				const existingItems = lineItems.filter(item => cartItems.includes(item.productId)).map(item => (item.productId))
+				log('Removing existing items:', existingItems);
+				await this.removeItem(...existingItems)
+			}
+		} catch(err) {
+			console.error(`BC API: Could not update items in the cart`);
+			throw err;
+		}
+		if(newItems.length) {
+			log('Adding items:', newItems);
+			return await this.addItem(...newItems);
+		}
+	}
 
 	/**
 	 * Remove item(s) from the cart.

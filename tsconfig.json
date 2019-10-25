@@ -2,7 +2,7 @@
     "compilerOptions": {
         "outDir": "./lib/",
         "sourceMap": true,
-        "strict": true,
+        "strict": false,
         "lib": ["es2018", "dom"],
         "noImplicitReturns": true,
         "noImplicitAny": true,
