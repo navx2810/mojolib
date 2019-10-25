@@ -9,6 +9,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "publishConfig": { "registry": "https://npm.pkg.github.com/" },
   "scripts": {
     "clean": "npx gulp clean",
     "build": "npx gulp"
